@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta-name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RandomEncrypt</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
@@ -70,7 +70,7 @@
       flex-wrap: wrap;
     }
 
-    button {
+    button, label {
       padding: 10px 18px;
       border: none;
       border-radius: 6px;
@@ -83,6 +83,11 @@
 
     button:hover {
       background-color: #357ab8;
+    }
+
+    input[type="checkbox"] {
+      margin-left: 12px;
+      transform: scale(1.2);
     }
 
     .output {
@@ -114,7 +119,7 @@
   <button class="toggle-theme" onclick="toggleTheme()">Toggle Theme</button>
 
   <h1>RandomEncrypt</h1>
-  <p class="tagline">Encrypt or decrypt text using your custom format.</p>
+  <p class="tagline">Encrypt or decrypt text using your custom format. Choose full or short mode.</p>
 
   <div class="container">
     <textarea id="inputText" placeholder="Type your message here..."></textarea>
@@ -123,6 +128,10 @@
       <button onclick="encrypt()">Encrypt</button>
       <button onclick="decrypt()">Decrypt</button>
       <button onclick="exportText()">Export .txt</button>
+      <label>
+        <input type="checkbox" id="shortModeToggle" />
+        Use Short Format
+      </label>
     </div>
 
     <div class="output" id="outputArea"></div>
@@ -137,13 +146,20 @@
 
     function encrypt() {
       const input = document.getElementById('inputText').value;
+      const useShort = document.getElementById('shortModeToggle').checked;
       let output = '';
 
       for (let char of input) {
         if (/[a-zA-Z]/.test(char)) {
           const index = alphabet.indexOf(char.toLowerCase()) + 1;
-          const label = char === char.toUpperCase() ? 'CAPITALletter' : 'letter';
-          output += `${label}(${index}th)${getRandomNumberString()}.RANDOMENCRYPTED\n`;
+          const randomNum = getRandomNumberString();
+          if (useShort) {
+            const prefix = char === char.toUpperCase() ? 'C' : 'L';
+            output += `${prefix}${index}:${randomNum}\n`;
+          } else {
+            const label = char === char.toUpperCase() ? 'CAPITALletter' : 'letter';
+            output += `${label}(${index}th)${randomNum}.RANDOMENCRYPTED\n`;
+          }
         } else if (char === ' ') {
           output += '\n';
         } else {
@@ -160,14 +176,27 @@
       let output = '';
 
       for (let line of lines) {
-        const match = line.match(/(CAPITALletter|letter)\((\d+)th\)/);
+        let match;
+
+        // Match full format
+        match = line.match(/(CAPITALletter|letter)\((\d+)th\)/);
         if (match) {
           let char = alphabet[parseInt(match[2]) - 1];
           if (match[1] === 'CAPITALletter') char = char.toUpperCase();
           output += char;
-        } else {
-          output += line.trim();
+          continue;
         }
+
+        // Match short format
+        match = line.match(/([CL])(\d+):/);
+        if (match) {
+          let char = alphabet[parseInt(match[2]) - 1];
+          if (match[1] === 'C') char = char.toUpperCase();
+          output += char;
+          continue;
+        }
+
+        output += line.trim();
       }
 
       document.getElementById('outputArea').textContent = output;
