@@ -2,111 +2,197 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta-name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RandomEncrypt</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg: #ffffff;
+      --text: #111111;
+      --input: #f0f0f0;
+      --border: #dddddd;
+      --accent: #4a90e2;
+    }
+    [data-theme="dark"] {
+      --bg: #121212;
+      --text: #eeeeee;
+      --input: #1e1e1e;
+      --border: #333333;
+      --accent: #4a90e2;
+    }
+
     body {
       margin: 0;
-      padding: 40px;
       font-family: 'Inter', sans-serif;
-      background: #f9f9f9;
-      color: #333;
+      background-color: var(--bg);
+      color: var(--text);
       display: flex;
       flex-direction: column;
       align-items: center;
+      padding: 40px 20px;
+      transition: all 0.3s ease;
     }
+
     h1 {
       font-size: 2rem;
       margin-bottom: 8px;
     }
-    p.tagline {
+
+    .tagline {
       margin-top: 0;
-      margin-bottom: 24px;
-      color: #555;
+      margin-bottom: 32px;
+      color: #888;
     }
-    textarea {
+
+    .container {
       width: 100%;
       max-width: 800px;
-      height: 160px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 140px;
       padding: 12px;
-      font-size: 1rem;
-      border: 1px solid #ddd;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      background: var(--input);
+      border: 1px solid var(--border);
       border-radius: 6px;
       resize: vertical;
+      color: var(--text);
     }
+
     .controls {
-      margin: 20px 0;
+      margin: 16px 0;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
     }
+
     button {
-      padding: 10px 20px;
-      margin: 0 8px;
+      padding: 10px 18px;
       border: none;
-      font-size: 1rem;
       border-radius: 6px;
-      cursor: pointer;
-      background-color: #4a90e2;
+      background-color: var(--accent);
       color: #fff;
-      transition: background-color 0.2s;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
     }
+
     button:hover {
       background-color: #357ab8;
     }
-    pre.output {
-      width: 100%;
-      max-width: 800px;
-      padding: 16px;
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 6px;
+
+    .output {
       white-space: pre-wrap;
       word-wrap: break-word;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      background: var(--input);
+      border: 1px solid var(--border);
+      padding: 16px;
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      min-height: 120px;
+    }
+
+    .toggle-theme {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 14px;
+      background: none;
+      border: none;
+      color: var(--accent);
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
 
+  <button class="toggle-theme" onclick="toggleTheme()">Toggle Theme</button>
+
   <h1>RandomEncrypt</h1>
-  <p class="tagline">A simple, clean tool for your custom encryption vibes.</p>
+  <p class="tagline">Encrypt or decrypt text using your custom format.</p>
 
-  <textarea id="inputText" placeholder="Type your message..."></textarea>
-  <div class="controls">
-    <button onclick="encryptText()">Encrypt</button>
-    <button onclick="decryptText()">Decrypt</button>
+  <div class="container">
+    <textarea id="inputText" placeholder="Type your message here..."></textarea>
+
+    <div class="controls">
+      <button onclick="encrypt()">Encrypt</button>
+      <button onclick="decrypt()">Decrypt</button>
+      <button onclick="exportText()">Export .txt</button>
+    </div>
+
+    <div class="output" id="outputArea"></div>
   </div>
-
-  <pre class="output" id="outputArea"></pre>
 
   <script>
     const alphabet = 'abcdefghijklmnopqrstuvwxyz';
-    const rnd = () => Array.from({length:16}, () => Math.floor(Math.random()*10)).join('');
 
-    function encryptText() {
+    function getRandomNumberString(length = 16) {
+      return Array.from({ length }, () => Math.floor(Math.random() * 10)).join('');
+    }
+
+    function encrypt() {
       const input = document.getElementById('inputText').value;
-      const out = input.split('').map(ch => {
-        if (/[a-zA-Z]/.test(ch)) {
-          const i = alphabet.indexOf(ch.toLowerCase()) + 1;
-          const label = ch === ch.toUpperCase() ? 'CAPITALletter' : 'letter';
-          return `${label}(${i}th)${rnd()}.RANDOMENCRYPTED`;
+      let output = '';
+
+      for (let char of input) {
+        if (/[a-zA-Z]/.test(char)) {
+          const index = alphabet.indexOf(char.toLowerCase()) + 1;
+          const label = char === char.toUpperCase() ? 'CAPITALletter' : 'letter';
+          output += `${label}(${index}th)${getRandomNumberString()}.RANDOMENCRYPTED\n`;
+        } else if (char === ' ') {
+          output += '\n';
+        } else {
+          output += char + '\n';
         }
-        return ch;
-      });
-      document.getElementById('outputArea').textContent = out.join('\n');
+      }
+
+      document.getElementById('outputArea').textContent = output.trim();
     }
 
-    function decryptText() {
-      const lines = document.getElementById('inputText').value.split('\n');
-      const out = lines.map(ln => {
-        const m = ln.match(/^(CAPITALletter|letter)\((\d+)th\)/);
-        if (m) {
-          let c = alphabet[parseInt(m[2]) - 1];
-          return m[1] === 'CAPITALletter' ? c.toUpperCase() : c;
+    function decrypt() {
+      const input = document.getElementById('inputText').value;
+      const lines = input.split('\n');
+      let output = '';
+
+      for (let line of lines) {
+        const match = line.match(/(CAPITALletter|letter)\((\d+)th\)/);
+        if (match) {
+          let char = alphabet[parseInt(match[2]) - 1];
+          if (match[1] === 'CAPITALletter') char = char.toUpperCase();
+          output += char;
+        } else {
+          output += line.trim();
         }
-        return ln;
-      });
-      document.getElementById('outputArea').textContent = out.join('');
+      }
+
+      document.getElementById('outputArea').textContent = output;
     }
+
+    function exportText() {
+      const content = document.getElementById('outputArea').textContent;
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'encrypted_output.txt';
+      a.click();
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme');
+      const newTheme = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+    }
+
+    (function applySavedTheme() {
+      const saved = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', saved);
+    })();
   </script>
-
 </body>
 </html>
