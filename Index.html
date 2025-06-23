@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>RandomEncrypt™</title>
+  <style>
+    body {
+      background: #111;
+      color: #eee;
+      font-family: 'Courier New', Courier, monospace;
+      padding: 40px;
+      text-align: center;
+    }
+    h1 {
+      color: #f0f;
+    }
+    textarea {
+      width: 90%;
+      max-width: 600px;
+      height: 150px;
+      margin: 10px 0;
+      background: #222;
+      color: #0f0;
+      border: 1px solid #555;
+      padding: 10px;
+      resize: none;
+    }
+    button {
+      margin: 5px;
+      padding: 10px 20px;
+      background: #0f0;
+      color: #000;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #0c0;
+    }
+    .output {
+      margin-top: 20px;
+      background: #222;
+      padding: 20px;
+      color: #ff0;
+      white-space: pre-wrap;
+      border: 1px dashed #555;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>RandomEncrypt™ 😔</h1>
+
+  <textarea id="inputText" placeholder="Enter your sacred text here..."></textarea><br>
+  <button onclick="encryptText()">Encrypt</button>
+  <button onclick="decryptText()">Decrypt</button>
+
+  <div class="output" id="outputArea"></div>
+
+  <script>
+    const alphabet = 'abcdefghijklmnopqrstuvwxyz';
+
+    function getRandomNumberString(length = 16) {
+      let str = '';
+      for (let i = 0; i < length; i++) {
+        str += Math.floor(Math.random() * 10);
+      }
+      return str;
+    }
+
+    function encryptText() {
+      const input = document.getElementById('inputText').value;
+      let encrypted = '';
+
+      for (let char of input) {
+        if (/[a-zA-Z]/.test(char)) {
+          const lower = char.toLowerCase();
+          const index = alphabet.indexOf(lower) + 1;
+          const isCapital = char === char.toUpperCase();
+          const label = isCapital ? 'CAPITALletter' : 'letter';
+          const randomNumber = getRandomNumberString();
+          encrypted += `${label}(${index}th)${randomNumber}.RANDOMENCRYPTED\n`;
+        } else {
+          encrypted += char + '\n'; // leave non-letters as-is, but newline for consistency
+        }
+      }
+
+      document.getElementById('outputArea').textContent = encrypted.trim();
+    }
+
+    function decryptText() {
+      const input = document.getElementById('inputText').value;
+      const lines = input.split('\n');
+      let decrypted = '';
+
+      for (let line of lines) {
+        const match = line.match(/(CAPITALletter|letter)\((\d+)th\)/);
+        if (match) {
+          let char = alphabet[parseInt(match[2]) - 1] || '?';
+          if (match[1] === 'CAPITALletter') char = char.toUpperCase();
+          decrypted += char;
+        } else {
+          decrypted += line.trim(); // add raw characters if no match (like punctuation)
+        }
+      }
+
+      document.getElementById('outputArea').textContent = decrypted;
+    }
+  </script>
+
+</body>
+</html>
