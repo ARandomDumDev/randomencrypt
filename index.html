@@ -1,110 +1,110 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>RandomEncrypt™</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RandomEncrypt</title>
   <style>
     body {
-      background: #111;
-      color: #eee;
-      font-family: 'Courier New', Courier, monospace;
+      margin: 0;
       padding: 40px;
-      text-align: center;
+      font-family: 'Inter', sans-serif;
+      background: #f9f9f9;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     h1 {
-      color: #f0f;
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+    p.tagline {
+      margin-top: 0;
+      margin-bottom: 24px;
+      color: #555;
     }
     textarea {
-      width: 90%;
-      max-width: 600px;
-      height: 150px;
-      margin: 10px 0;
-      background: #222;
-      color: #0f0;
-      border: 1px solid #555;
-      padding: 10px;
-      resize: none;
+      width: 100%;
+      max-width: 800px;
+      height: 160px;
+      padding: 12px;
+      font-size: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      resize: vertical;
+    }
+    .controls {
+      margin: 20px 0;
     }
     button {
-      margin: 5px;
       padding: 10px 20px;
-      background: #0f0;
-      color: #000;
+      margin: 0 8px;
       border: none;
+      font-size: 1rem;
+      border-radius: 6px;
       cursor: pointer;
-      font-weight: bold;
+      background-color: #4a90e2;
+      color: #fff;
+      transition: background-color 0.2s;
     }
     button:hover {
-      background: #0c0;
+      background-color: #357ab8;
     }
-    .output {
-      margin-top: 20px;
-      background: #222;
-      padding: 20px;
-      color: #ff0;
+    pre.output {
+      width: 100%;
+      max-width: 800px;
+      padding: 16px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 6px;
       white-space: pre-wrap;
-      border: 1px dashed #555;
+      word-wrap: break-word;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     }
   </style>
 </head>
 <body>
 
-  <h1>RandomEncrypt™ 😔</h1>
+  <h1>RandomEncrypt</h1>
+  <p class="tagline">A simple, clean tool for your custom encryption vibes.</p>
 
-  <textarea id="inputText" placeholder="Enter your sacred text here..."></textarea><br>
-  <button onclick="encryptText()">Encrypt</button>
-  <button onclick="decryptText()">Decrypt</button>
+  <textarea id="inputText" placeholder="Type your message..."></textarea>
+  <div class="controls">
+    <button onclick="encryptText()">Encrypt</button>
+    <button onclick="decryptText()">Decrypt</button>
+  </div>
 
-  <div class="output" id="outputArea"></div>
+  <pre class="output" id="outputArea"></pre>
 
   <script>
     const alphabet = 'abcdefghijklmnopqrstuvwxyz';
-
-    function getRandomNumberString(length = 16) {
-      let str = '';
-      for (let i = 0; i < length; i++) {
-        str += Math.floor(Math.random() * 10);
-      }
-      return str;
-    }
+    const rnd = () => Array.from({length:16}, () => Math.floor(Math.random()*10)).join('');
 
     function encryptText() {
       const input = document.getElementById('inputText').value;
-      let encrypted = '';
-
-      for (let char of input) {
-        if (/[a-zA-Z]/.test(char)) {
-          const lower = char.toLowerCase();
-          const index = alphabet.indexOf(lower) + 1;
-          const isCapital = char === char.toUpperCase();
-          const label = isCapital ? 'CAPITALletter' : 'letter';
-          const randomNumber = getRandomNumberString();
-          encrypted += `${label}(${index}th)${randomNumber}.RANDOMENCRYPTED\n`;
-        } else {
-          encrypted += char + '\n'; // leave non-letters as-is, but newline for consistency
+      const out = input.split('').map(ch => {
+        if (/[a-zA-Z]/.test(ch)) {
+          const i = alphabet.indexOf(ch.toLowerCase()) + 1;
+          const label = ch === ch.toUpperCase() ? 'CAPITALletter' : 'letter';
+          return `${label}(${i}th)${rnd()}.RANDOMENCRYPTED`;
         }
-      }
-
-      document.getElementById('outputArea').textContent = encrypted.trim();
+        return ch;
+      });
+      document.getElementById('outputArea').textContent = out.join('\n');
     }
 
     function decryptText() {
-      const input = document.getElementById('inputText').value;
-      const lines = input.split('\n');
-      let decrypted = '';
-
-      for (let line of lines) {
-        const match = line.match(/(CAPITALletter|letter)\((\d+)th\)/);
-        if (match) {
-          let char = alphabet[parseInt(match[2]) - 1] || '?';
-          if (match[1] === 'CAPITALletter') char = char.toUpperCase();
-          decrypted += char;
-        } else {
-          decrypted += line.trim(); // add raw characters if no match (like punctuation)
+      const lines = document.getElementById('inputText').value.split('\n');
+      const out = lines.map(ln => {
+        const m = ln.match(/^(CAPITALletter|letter)\((\d+)th\)/);
+        if (m) {
+          let c = alphabet[parseInt(m[2]) - 1];
+          return m[1] === 'CAPITALletter' ? c.toUpperCase() : c;
         }
-      }
-
-      document.getElementById('outputArea').textContent = decrypted;
+        return ln;
+      });
+      document.getElementById('outputArea').textContent = out.join('');
     }
   </script>
 
