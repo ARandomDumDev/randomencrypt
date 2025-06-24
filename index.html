@@ -5,36 +5,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>RandomEncrypt</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/3.0.0/uicons-bold-rounded/css/uicons-bold-rounded.css">
   <style>
     :root {
-      --bg: #ffffff;
-      --text: #111111;
+      --bg: #fff;
+      --text: #111;
       --input: #f0f0f0;
-      --border: #dddddd;
+      --border: #ccc;
       --accent: #4a90e2;
     }
-    [data-theme="dark"] {
+    [data-theme='dark'] {
       --bg: #121212;
-      --text: #eeeeee;
+      --text: #eee;
       --input: #1e1e1e;
-      --border: #333333;
+      --border: #333;
       --accent: #4a90e2;
     }
+    * { box-sizing: border-box; }
     body {
       font-family: 'Inter', sans-serif;
       background-color: var(--bg);
       color: var(--text);
-      padding: 30px;
+      padding: 24px;
       margin: 0;
     }
-    h1 {
-      margin-bottom: 0;
-    }
+    h1 { margin-bottom: 8px; }
     .tagline {
-      margin-top: 4px;
-      margin-bottom: 20px;
       font-size: 14px;
       color: #888;
+      margin-bottom: 24px;
     }
     textarea {
       width: 100%;
@@ -47,7 +46,7 @@
       border-radius: 6px;
       color: var(--text);
     }
-    .controls, .config-panel {
+    .controls, .settings-panel {
       margin: 16px 0;
       display: flex;
       flex-wrap: wrap;
@@ -64,55 +63,104 @@
       font-size: 14px;
       min-height: 100px;
     }
-    button, label, input[type=number], input[type=text] {
-      padding: 8px 14px;
+    button, .switch, input[type=text], input[type=number] {
+      font-size: 14px;
+      padding: 8px 12px;
       border: 1px solid var(--border);
       border-radius: 6px;
-      font-size: 14px;
-      background-color: var(--bg);
+      background: var(--bg);
       color: var(--text);
     }
-    input[type=checkbox] {
-      transform: scale(1.2);
-      margin-right: 6px;
-    }
-    .toggle-theme {
-      position: absolute;
-      right: 16px;
-      top: 16px;
-      background: none;
-      border: none;
-      color: var(--accent);
+    .switch {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       cursor: pointer;
-      font-size: 14px;
     }
+    .switch input {
+      appearance: none;
+      width: 36px;
+      height: 20px;
+      background: var(--border);
+      border-radius: 10px;
+      position: relative;
+      outline: none;
+      transition: background 0.3s;
+    }
+    .switch input:checked {
+      background: var(--accent);
+    }
+    .switch input::before {
+      content: "";
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      background: var(--bg);
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.3s;
+    }
+    .switch input:checked::before {
+      transform: translateX(16px);
+    }
+    .settings-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--accent);
+      font-size: 16px;
+    }
+    .settings-toggle .fi {
+      transition: transform 0.3s ease;
+    }
+    .settings-toggle.active .fi {
+      transform: rotate(180deg);
+    }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
-  <button class="toggle-theme" onclick="toggleTheme()">Toggle Theme</button>
-
   <h1>RandomEncrypt</h1>
-  <div class="tagline">Encrypt your text with full or short format. Fully configurable.</div>
+  <div class="tagline">Encrypt anything into chaos. Toggle full or short. Customize everything.</div>
 
   <textarea id="inputText" placeholder="Type something here..."></textarea>
 
   <div class="controls">
     <button onclick="encrypt()">Encrypt</button>
     <button onclick="decrypt()">Decrypt</button>
-    <label><input type="checkbox" id="shortMode">Short Format</label>
+    <label class="switch">
+      <span>Short Format</span>
+      <input type="checkbox" id="shortMode">
+    </label>
+    <button onclick="toggleSettings()" class="settings-toggle" id="settingsBtn">
+      <i class="fi fi-br-settings"></i> Settings
+    </button>
   </div>
 
-  <div class="config-panel">
+  <div class="settings-panel hidden" id="settingsPanel">
     <label>Seed Length <input type="number" id="seedLength" value="16" min="4" max="64"></label>
-    <label><input type="checkbox" id="stripSuffix">Remove .RANDOMENCRYPTED</label>
     <label>Separator <input type="text" id="separator" value=":"></label>
+    <label class="switch">
+      <span>Remove .RANDOMENCRYPTED</span>
+      <input type="checkbox" id="stripSuffix">
+    </label>
+    <label class="switch">
+      <span>Dark Mode</span>
+      <input type="checkbox" id="darkModeToggle" onchange="toggleTheme()">
+    </label>
+    <button onclick="copyOutput()">📋 Copy</button>
+    <button onclick="downloadOutput()">⬇️ Download</button>
   </div>
 
   <div class="output" id="outputArea"></div>
 
   <script>
     const alphabet = 'abcdefghijklmnopqrstuvwxyz';
-    const symbols = '!@#$%^&*()_+-=[]{}|;:\'",.<>/?`~';
+    const symbols = "!@#$%^&*()_+-=[]{}|;:'\",.<>/?`~";
 
     function getRandomDigits(length = 16) {
       return Array.from({ length }, () => Math.floor(Math.random() * 10)).join('');
@@ -127,65 +175,51 @@
 
       let out = "";
       for (let char of input) {
-        let random = getRandomDigits(seedLen);
-
+        let rand = getRandomDigits(seedLen);
         if (/[a-zA-Z]/.test(char)) {
-          let index = alphabet.indexOf(char.toLowerCase()) + 1;
+          let i = alphabet.indexOf(char.toLowerCase()) + 1;
           let isUpper = char === char.toUpperCase();
-          if (shortMode) {
-            out += (isUpper ? "C" : "L") + index + sep + random + "\\n";
-          } else {
-            out += (isUpper ? "CAPITALletter(" : "letter(") + index + "th)" + random + (stripSuffix ? "" : ".RANDOMENCRYPTED") + "\\n";
-          }
+          out += shortMode
+            ? (isUpper ? "C" : "L") + i + sep + rand
+            : (isUpper ? "CAPITALletter(" : "letter(") + i + "th)" + rand + (stripSuffix ? "" : ".RANDOMENCRYPTED");
         } else if (/[0-9]/.test(char)) {
-          if (shortMode) {
-            out += "N" + char + sep + random + "\\n";
-          } else {
-            out += "NUM(" + char + ")" + random + (stripSuffix ? "" : ".RANDOMENCRYPTED") + "\\n";
-          }
+          out += shortMode ? "N" + char + sep + rand : "NUM(" + char + ")" + rand + (stripSuffix ? "" : ".RANDOMENCRYPTED");
         } else if (symbols.includes(char)) {
-          if (shortMode) {
-            out += "S" + char + sep + random + "\\n";
-          } else {
-            out += "SYM(" + char + ")" + random + (stripSuffix ? "" : ".RANDOMENCRYPTED") + "\\n";
-          }
+          out += shortMode ? "S" + char + sep + rand : "SYM(" + char + ")" + rand + (stripSuffix ? "" : ".RANDOMENCRYPTED");
         } else if (char === " ") {
-          out += "\\n";
+          out += " ";
         } else {
-          out += char + "\\n";
+          out += char;
         }
       }
-
-      document.getElementById("outputArea").textContent = out.trim();
+      document.getElementById("outputArea").textContent = out;
     }
 
     function decrypt() {
-      const input = document.getElementById("inputText").value.split('\\n');
-      let out = "";
+      const input = document.getElementById("inputText").value;
+      let out = "", regex = /([A-Z]+)?(?:letter|NUM|SYM)?$begin:math:text$?(\\d+|[^)]+)$end:math:text$?/g, match;
 
-      input.forEach(line => {
-        let m;
-
-        if ((m = line.match(/^(CAPITALletter|letter)\$begin:math:text$(\\\\d+)th\\$end:math:text$/))) {
-          let char = alphabet[parseInt(m[2]) - 1];
-          out += m[1] === "CAPITALletter" ? char.toUpperCase() : char;
-        } else if ((m = line.match(/^NUM\$begin:math:text$(\\\\d)\\$end:math:text$/))) {
-          out += m[1];
-        } else if ((m = line.match(/^SYM\$begin:math:text$(.)\\$end:math:text$/))) {
-          out += m[1];
-        } else if ((m = line.match(/^C(\\d+).*/))) {
-          out += alphabet[parseInt(m[1]) - 1].toUpperCase();
-        } else if ((m = line.match(/^L(\\d+).*/))) {
-          out += alphabet[parseInt(m[1]) - 1];
-        } else if ((m = line.match(/^N(\\d+).*/))) {
-          out += m[1];
-        } else if ((m = line.match(/^S(.).*/))) {
-          out += m[1];
-        } else {
-          out += line;
+      const chunks = input.split(/(?=CAPITALletter|letter|NUM|SYM|C\d+|L\d+|N\d+|S.)/g);
+      for (let chunk of chunks) {
+        if ((match = chunk.match(/^(CAPITALletter|letter)$begin:math:text$(\\d+)th$end:math:text$/))) {
+          let ch = alphabet[parseInt(match[2]) - 1];
+          out += match[1] === "CAPITALletter" ? ch.toUpperCase() : ch;
+        } else if ((match = chunk.match(/^NUM$begin:math:text$(\\d)$end:math:text$/))) {
+          out += match[1];
+        } else if ((match = chunk.match(/^SYM$begin:math:text$(.)$end:math:text$/))) {
+          out += match[1];
+        } else if ((match = chunk.match(/^C(\d+)/))) {
+          out += alphabet[parseInt(match[1]) - 1].toUpperCase();
+        } else if ((match = chunk.match(/^L(\d+)/))) {
+          out += alphabet[parseInt(match[1]) - 1];
+        } else if ((match = chunk.match(/^N(\d)/))) {
+          out += match[1];
+        } else if ((match = chunk.match(/^S(.)/))) {
+          out += match[1];
+        } else if (chunk === " ") {
+          out += " ";
         }
-      });
-
+      }
       document.getElementById("outputArea").textContent = out;
     }
 
@@ -193,14 +227,35 @@
       const root = document.documentElement;
       const isDark = root.getAttribute("data-theme") === "dark";
       root.setAttribute("data-theme", isDark ? "light" : "dark");
+      document.getElementById("darkModeToggle").checked = !isDark;
       localStorage.setItem("theme", isDark ? "light" : "dark");
     }
 
-    (function restoreTheme() {
-      const saved = localStorage.getItem("theme");
-      if (saved) {
-        document.documentElement.setAttribute("data-theme", saved);
-      }
+    function toggleSettings() {
+      const panel = document.getElementById("settingsPanel");
+      const btn = document.getElementById("settingsBtn");
+      panel.classList.toggle("hidden");
+      btn.classList.toggle("active");
+    }
+
+    function copyOutput() {
+      const text = document.getElementById("outputArea").textContent;
+      navigator.clipboard.writeText(text);
+    }
+
+    function downloadOutput() {
+      const blob = new Blob([document.getElementById("outputArea").textContent], { type: "text/plain" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "RandomEncrypted.txt";
+      a.click();
+    }
+
+    // Restore saved theme
+    (function () {
+      const theme = localStorage.getItem("theme") || "light";
+      document.documentElement.setAttribute("data-theme", theme);
+      document.getElementById("darkModeToggle").checked = theme === "dark";
     })();
   </script>
 </body>
