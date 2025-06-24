@@ -183,9 +183,13 @@
             ? (isUpper ? "C" : "L") + i + sep + rand
             : (isUpper ? "CAPITALletter(" : "letter(") + i + "th)" + rand + (stripSuffix ? "" : ".RANDOMENCRYPTED");
         } else if (/[0-9]/.test(char)) {
-          out += shortMode ? "N" + char + sep + rand : "NUM(" + char + ")" + rand + (stripSuffix ? "" : ".RANDOMENCRYPTED");
+          out += shortMode
+            ? "N" + char + sep + rand
+            : "NUM(" + char + ")" + rand + (stripSuffix ? "" : ".RANDOMENCRYPTED");
         } else if (symbols.includes(char)) {
-          out += shortMode ? "S" + char + sep + rand : "SYM(" + char + ")" + rand + (stripSuffix ? "" : ".RANDOMENCRYPTED");
+          out += shortMode
+            ? "S" + char + sep + rand
+            : "SYM(" + char + ")" + rand + (stripSuffix ? "" : ".RANDOMENCRYPTED");
         } else if (char === " ") {
           out += " ";
         } else {
@@ -197,9 +201,9 @@
 
     function decrypt() {
       const input = document.getElementById("inputText").value;
-      let out = "", regex = /([A-Z]+)?(?:letter|NUM|SYM)?$begin:math:text$?(\\d+|[^)]+)$end:math:text$?/g, match;
-
+      let out = "", match;
       const chunks = input.split(/(?=CAPITALletter|letter|NUM|SYM|C\d+|L\d+|N\d+|S.)/g);
+
       for (let chunk of chunks) {
         if ((match = chunk.match(/^(CAPITALletter|letter)$begin:math:text$(\\d+)th$end:math:text$/))) {
           let ch = alphabet[parseInt(match[2]) - 1];
@@ -251,7 +255,7 @@
       a.click();
     }
 
-    // Restore saved theme
+    // Restore theme on load
     (function () {
       const theme = localStorage.getItem("theme") || "light";
       document.documentElement.setAttribute("data-theme", theme);
